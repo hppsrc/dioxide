@@ -2,7 +2,7 @@
 
 **Dioxide** is a program that seeks to recreate the [Zoxide](https://github.com/ajeetdsouza/zoxide) program but made entirely in Windows Batch.
 
-Current version: **0.1.0**
+Current version: **0.2.0-alpha**
 
 > [!WARNING]
 > Dioxide is currently in ***ALPHA***, much of what is said here may not be implemented yet. ***Be careful!***
@@ -77,6 +77,14 @@ Run the next switch to get help.
 This switch works whether or not it is installed.
 
 ## Version History 🕒
+
+- 0.2.0-alpha
+  - Changed the path in the variable.
+  - Extra check of arguments.
+  - Respective modifications in the use of Path variables.
+  - First implementation of the d function.
+  - Changed if for safe check.
+  - Change in help message.
 
 - 0.1.0
   - Initial Release.

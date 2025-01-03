@@ -1,44 +1,48 @@
-@echo off && cls
+@echo off
 
 @REM Dioxide main script, created by Hppsrc. Get last version on https://github.com/hppsrc/dioxide
 
 @REM enable dev mode
-if "%1" == "--dev" ( @echo on )
+echo on
 
 @REM #region VARIABLES
 @REM variables
-set version=0.1.0
-set build=250103001
+set version=0.2.0-alpha
+set build=250103181
 set title=%cd%
-set dioxidePath=%localappdata%\hppsrc\Dioxide\bin
+set dioxidePath=%localappdata%\hppsrc\Dioxide
 set error=0
 set arg=0
 
 @REM #region ARGS JUMP
-@REM check arg help
-if ["%1"] == [""] ( GOTO :RunCheck )
+
+@REM check args
 if "%1" == "--help" ( set arg=1 )
 if "%1" == "--git" ( set arg=2 )
 if "%1" == "--install" ( GOTO :AdminCheck )
 if "%1" == "--fi" ( GOTO :AdminCheck )
+
+if "%1" == "" ( GOTO :RunCheck )
+if %arg% NEQ 0 ( GOTO :Args )
 GOTO :Args
 
 :RunCheck
 @REM check if have to run
-if "%~dp0" == "%dioxidePath%\" ( GOTO :Run )
+if "%~dp0" == "%dioxidePath%\bin\" ( GOTO :Run )
 
 :AdminCheck
+@REM cls
 @REM check admin
 net session >nul 2>&1
 if %errorLevel% == 0 (
 
-    if "%~dp0" == "%dioxidePath%\" ( CALL :AdminCheckRun )
+    if "%~dp0" == "%dioxidePath%\bin\" ( CALL :AdminCheckRun )
 
     GOTO :CheckInstall
 
 ) else (
 
-    if "%~dp0" == "%dioxidePath%\" ( CALL :AdminCheckRun )
+    if "%~dp0" == "%dioxidePath%\bin\" ( CALL :AdminCheckRun )
 
     echo Error: Admin rights required
     echo Restarting with admin rights...
@@ -86,6 +90,29 @@ set error=1
 GOTO :Error
 
 :RunD
+@REM if no args, go to userprofile
+if "%1"=="" ( 
+
+    cd /d %userprofile%>nul 2>&1
+    GOTO :EOF
+
+@REM if arg
+) else (
+
+    @REM check if is a path
+    if exist "%1" (
+
+        cd /d %1>nul 2>&1
+        GOTO :EOF
+
+    )  else (
+
+        echo >nul 2>&1
+
+    )
+    
+)
+
 :RunDi
 echo To implement...
 pause
@@ -93,12 +120,13 @@ GOTO :Exit
 
 @REM #region INSTALL
 :CheckInstall
+cd %~dp1 >nul 2>&1
 if "%1" == "--fi" ( GOTO :Install )
 @REM check if Dioxide is installed
 title Installing Dioxide %version% ^(%build%^)
 reg query "HKLM\SOFTWARE\Dioxide" >nul 2>&1
 
-if [%errorLevel%] == [0] (
+if "%errorLevel%" == "0" (
 
     GOTO :CheckVersion
 
@@ -126,13 +154,13 @@ if [%errorLevel%] == [0] (
 )
 
 :CheckVersion
-cls
+@REM cls
 echo Seems like Dioxide is already installed in your system.
 echo.
 for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Dioxide" /v "Version"') do set regVersion=%%a
 for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Dioxide" /v "Build"') do set regBuild=%%a
 
-if not exist "%dioxidePath%" (
+if not exist "%dioxidePath%\bin\" (
 
     echo WARNING: Dioxide files not found!
     echo Dioxide keys are in your system, but the files are not found.
@@ -170,7 +198,7 @@ if "%regBuild%" == "%build%" (
     echo.
     set /p choice=
 
-    if [%choice%] == [Y] (
+    if "%choice%" == "Y" (
         
         GOTO :Install
 
@@ -189,7 +217,7 @@ if "%regBuild%" == "%build%" (
     echo.
     set /p choice=
 
-    if [%choice%] == [Y] (
+    if "%choice%" == "Y" (
         
         GOTO :Install
 
@@ -205,23 +233,22 @@ set error=2
 GOTO :Error
 
 :Install
-cls
+@REM cls
 echo Installing Dioxide %version% ^(%build%^)...
 echo.
 echo Creating new files... [1/3]
 
 copy /y "%~s0" "%temp%\dioxide.bat" >nul 2>&1
-rmdir /s /q "%dioxidePath%" >nul 2>&1
-mkdir "%dioxidePath%" >nul 2>&1
-copy /y "%temp%\dioxide.bat" "%dioxidePath%\d.bat" >nul 2>&1
-copy /y "%temp%\dioxide.bat" "%dioxidePath%\di.bat" >nul 2>&1
+rmdir /s /q "%dioxidePath%\bin\" >nul 2>&1
+mkdir "%dioxidePath%\bin\" >nul 2>&1
+copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\d.bat" >nul 2>&1
+copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\di.bat" >nul 2>&1
 del "%temp%\dioxide.bat" >nul 2>&1
 echo.
 
 echo Creating reg keys... [2/3]
 reg add "HKLM\SOFTWARE\Dioxide" /v "Version" /t REG_SZ /d "%version%" /f >nul 
 reg add "HKLM\SOFTWARE\Dioxide" /v "Build" /t REG_SZ /d "%build%" /f >nul
-@REM 2>&1
 echo.
 
 echo Adding to path... [3/3] 
@@ -248,16 +275,16 @@ GOTO :ExitNoCLS
 @REM #region ARGS
 
 :Args
-if %arg% == 1 ( 
+if "%arg%" == "1" ( 
     echo Dioxide %version% ^(%build%^) Help
     echo.
     echo Dioxide is a command line tool to change directories more easily.
     echo Check the github repo at https://github.com/hppsrc/dioxide
     echo You open it using "%~nx0 --git"
     echo.
-    echo    --help          : Show this help
-    echo    --dev           : Enable dev mode
     echo    --install       : Start install process
+    echo    --help          : Show this help
+    echo    --git           : Open Dioxide github repo
     echo    --fi            : Force install without checks
     echo.
     echo Usage:
@@ -272,7 +299,7 @@ if %arg% == 1 (
     echo    d C:\Some\Path
     echo.
     pause
-) else if %arg% == 2 (
+) else if "%arg%" == "2" (
     start https://github.com/hppsrc/dioxide
 ) else (
     set error=3
@@ -283,11 +310,11 @@ GOTO :Exit
 
 @REM #region ERROR
 :Error
-if [%error%] == [1] (
+if "%error%" == "1" (
     echo Dioxide Error: Dioxide might be corrupted, install it again.
-) else if [%error%] == [2] (
+) else if "%error%" == "2" (
     echo Dioxide Error: Error on build check.
-) else if [%error%] == [3] (
+) else if "%error%" == "3" (
     echo Dioxide Error: Unknown argument "%1".
 ) else (
     echo Dioxide Error: Unknown error.
@@ -298,7 +325,7 @@ GOTO :ExitNoCLS
 @REM #region EXIT
 :Exit 
 
-@echo on && title %title% && cls
+@echo on && title %title% && REM cls
 
 :ExitNoCLS
 
