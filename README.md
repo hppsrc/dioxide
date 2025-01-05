@@ -2,7 +2,7 @@
 
 **Dioxide** is a program that seeks to recreate the [Zoxide](https://github.com/ajeetdsouza/zoxide) program but made entirely in Windows Batch.
 
-Current version: **0.2.0-alpha**
+Current version: **0.3.0-alpha**
 
 > [!WARNING]
 > Dioxide is currently in ***ALPHA***, much of what is said here may not be implemented yet. ***Be careful!***
@@ -78,6 +78,13 @@ This switch works whether or not it is installed.
 
 ## Version History 🕒
 
+-0.3.0-alpha
+  - Correctly implemented a check for “dev mode”.
+  - Added checks to know whether to execute “d” or check a command.
+  - Changed commands from “--” to “/”.
+  - Reduced timeout from 3 sec to 1 sec.
+  - Implemented a better way to receive option input with choice.exe.
+
 - 0.2.0-alpha
   - Changed the path in the variable.
   - Extra check of arguments.
@@ -101,4 +108,8 @@ This project is licensed under the Apache 2.0 License.
 - [ ] History and ranking.
 - [ ] Add interactive mode. (di)
 - [ ] Test compatibility with more Windows versions.
-- [ ] Loggin system
+- [ ] Loggin system.
+- [ ] Extra actions
+  - [ ] "d /back" return to last path.
+  - [ ] "d *" open explorer
+  - [ ] "d **" open new terminal
