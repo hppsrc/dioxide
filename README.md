@@ -2,7 +2,7 @@
 
 **Dioxide** is a program that seeks to recreate the [Zoxide](https://github.com/ajeetdsouza/zoxide) program but made entirely in Windows Batch.
 
-Current version: **0.3.0-alpha**
+Current version: **0.3.1-alpha**
 
 > [!WARNING]
 > Dioxide is currently in ***ALPHA***, much of what is said here may not be implemented yet. ***Be careful!***
@@ -36,14 +36,11 @@ There are two ways to install Dioxide.
 
 - Run
 
-        main.bat --install
+        main.bat /install
 
 The script will then create the necessary files and entries in the Windows registry.
 
 ### Using Dioxide 💻
-
-> [!IMPORTANT]
-> Dioxide currently only can be installed, it does not perform any other actions.
 
 - As in Zoxide, you use `d` to move to execute most of the actions.
 
@@ -72,7 +69,7 @@ TODO: Add this and screenshots -->
 
 Run the next switch to get help.
 
-        d --help
+        d /help
 
 This switch works whether or not it is installed.
 
@@ -84,6 +81,9 @@ This switch works whether or not it is installed.
   - Changed commands from “--” to “/”.
   - Reduced timeout from 3 sec to 1 sec.
   - Implemented a better way to receive option input with choice.exe.
+  - Minor fix to error when using /fi.
+  - The title is updated to the current directory and not the previous one.
+  - Changed use of :EOF to :ExitNoCLS.
 
 - 0.2.0-alpha
   - Changed the path in the variable.
@@ -104,12 +104,12 @@ This project is licensed under the Apache 2.0 License.
 ## TODO ✔️
 
 - [ ] Improve error handling.
-- [ ] Main "d" implementation.
+- [x] Main "d" implementation.
 - [ ] History and ranking.
 - [ ] Add interactive mode. (di)
 - [ ] Test compatibility with more Windows versions.
 - [ ] Loggin system.
-- [ ] Extra actions
-  - [ ] "d /back" return to last path.
-  - [ ] "d *" open explorer
-  - [ ] "d **" open new terminal
+- [ ] Extra actions.
+  - [ ] "d /b" return to last path.
+  - [ ] "d /e" open explorer.
+  - [ ] "d /n" open new terminal.

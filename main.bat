@@ -8,9 +8,8 @@ if "%~n0" == "dev" ( echo on )
 @REM #region VARIABLES
 
 @REM variables
-set version=0.3.0-alpha
-set build=250104231
-set title=%cd%
+set version=0.3.1-alpha
+set build=250105001
 set dioxidePath=%localappdata%\hppsrc\Dioxide
 set error=0
 set arg=0
@@ -99,7 +98,7 @@ GOTO :Error
 if "%1"=="" ( 
 
     cd /d %userprofile%>nul 2>&1
-    GOTO :EOF
+    GOTO :ExitNoCLS
 
 @REM if arg
 ) else (
@@ -108,10 +107,11 @@ if "%1"=="" (
     if exist "%1" (
 
         cd /d %1>nul 2>&1
-        GOTO :EOF
+        GOTO :ExitNoCLS
 
     )  else (
 
+        @REM check ranking 
         echo >nul 2>&1
 
     )
@@ -126,7 +126,7 @@ GOTO :Args
 @REM #region INSTALL
 
 :CheckInstall
-if "%1" == "--fi" ( GOTO :Install )
+if "%1" == "/fi" ( GOTO :Install )
 @REM check if Dioxide is installed
 title Installing Dioxide %version% ^(%build%^)
 reg query "HKLM\SOFTWARE\Dioxide" >nul 2>&1
@@ -310,8 +310,8 @@ GOTO :ExitNoCLS
 
 :Exit 
 
-@echo on && title %title% && cls
+@echo on && title %cd% && cls
 
 :ExitNoCLS
 
-@echo on && title %title%
+@echo on && title %cd%
