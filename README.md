@@ -2,13 +2,10 @@
 
 **Dioxide** is a program that seeks to recreate the [Zoxide](https://github.com/ajeetdsouza/zoxide) program but made entirely in Windows Batch.
 
-Current version: **0.3.1-alpha**
+Current version: **0.4.0-alpha**
 
 > [!WARNING]
 > Dioxide is currently in ***ALPHA***, much of what is said here may not be implemented yet. ***Be careful!***
-
-> [!IMPORTANT]
-> Dioxide currently only can be installed, it does not perform any other actions.
 
 ## Getting Started 🎯
 
@@ -21,7 +18,7 @@ Current version: **0.3.1-alpha**
 
 ### Download ⬇️
 
-Download last raw file here.
+Download [last raw file here](https://raw.githubusercontent.com/hppsrc/dioxide/refs/heads/main/main.bat).
 
 ### Installing ⚙️
 
@@ -73,9 +70,34 @@ Run the next switch to get help.
 
 This switch works whether or not it is installed.
 
+## License 🔑
+
+This project is licensed under the Apache 2.0 License.
+
+## TODO ✔️
+
+- [ ] Improve error handling.
+- [x] Main "d" implementation.
+- [ ] History and ranking.
+- [ ] Add interactive mode. (di)
+- [ ] Test compatibility with more Windows versions.
+- [ ] Loggin system.
+- [x] Extra actions.
+  - [x] "d /b" return to last path.
+  - [x] "d /e" open explorer.
+  - [x] "d /n" open new terminal.
+
 ## Version History 🕒
 
--0.3.0-alpha
+- 0.4.0-alpha
+  - Added extra function commands, “reset” and “uninstall”.
+  - Now using an administrator command with “d” creates a new .bat.
+  - Called “Post use” to create last directory file and start Dioxide service (not implemented yet).
+  - Added option to uninstall Dioxide from system.
+  - Added new commands in help message.
+  - Added space for service implementation, and warning message.
+
+- 0.3.0-alpha
   - Correctly implemented a check for “dev mode”.
   - Added checks to know whether to execute “d” or check a command.
   - Changed commands from “--” to “/”.
@@ -96,20 +118,3 @@ This switch works whether or not it is installed.
 - 0.1.0
   - Initial Release.
   - Basic functions implementation.
-
-## License 🔑
-
-This project is licensed under the Apache 2.0 License.
-
-## TODO ✔️
-
-- [ ] Improve error handling.
-- [x] Main "d" implementation.
-- [ ] History and ranking.
-- [ ] Add interactive mode. (di)
-- [ ] Test compatibility with more Windows versions.
-- [ ] Loggin system.
-- [ ] Extra actions.
-  - [ ] "d /b" return to last path.
-  - [ ] "d /e" open explorer.
-  - [ ] "d /n" open new terminal.

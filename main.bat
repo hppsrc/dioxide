@@ -8,8 +8,8 @@ if "%~n0" == "dev" ( echo on )
 @REM #region VARIABLES
 
 @REM variables
-set version=0.3.1-alpha
-set build=250105001
+set version=0.4.0-alpha
+set build=250105232
 set dioxidePath=%localappdata%\hppsrc\Dioxide
 set error=0
 set arg=0
@@ -19,15 +19,26 @@ set arg=0
 @REM check args
 if "%1" == "" (
     GOTO :RunCheck
-) else (
-    @REM TODO if 1st letter is a slash, set arg -1
+)
+
+set "check=%1"
+if "%check:~0,1%"=="/" (
+    set "arg="
+    set "arg=-1"
 )
 
 if "%1" == "/help" ( set arg=1 )
 if "%1" == "/git" ( set arg=2 )
+if "%1" == "/b" ( set arg=3 )
+if "%1" == "/e" ( set arg=4 )
+if "%1" == "/n" ( set arg=5 )
+
+if "%1" == "/service" ( set arg=99 )
 
 if "%1" == "/install" ( GOTO :AdminCheck )
 if "%1" == "/fi" ( GOTO :AdminCheck )
+if "%1" == "/reset" ( GOTO :AdminCheck )
+if "%1" == "/uninstall" ( GOTO :AdminCheck )
 
 :RunCheck
 if "%arg%" == "0" (
@@ -47,7 +58,12 @@ if %errorLevel% == 0 (
 
     if "%~dp0" == "%dioxidePath%\bin\" ( CALL :AdminCheckRun )
 
+    if "%1" == "/uninstall" ( GOTO :Uninstall )
+
     GOTO :CheckInstall
+
+    set error=5
+    GOTO :Error
 
 ) else (
 
@@ -56,8 +72,6 @@ if %errorLevel% == 0 (
     echo Error: Admin rights required
     echo Restarting with admin rights...
 
-    timeout 1 >nul
-    
     echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
     echo UAC.ShellExecute "cmd.exe", "/c %~s0 %*", "", "runas", 1 >> "%temp%\getadmin.vbs"
     "%temp%\getadmin.vbs"
@@ -73,11 +87,16 @@ echo That's not necessary, but it will reinstall Dioxide.
 echo Useful if you are having problems.
 echo.
 choice /c YN /n /m "Press Y to continue, N to exit: "
-    if errorlevel 2 (
-        GOTO :Exit
-    ) else (
-        GOTO :Install
-    )
+if errorlevel 2 (
+    GOTO :Exit
+) else (
+    copy /y "%~s0" "%temp%\dioxide_temp_installer.bat" >nul 2>&1
+    echo start "" "%temp%\dioxide_temp_installer.bat" /fi /reset > "%userprofile%\desktop\dioxide_%version%_installer.bat"
+    echo.
+    echo A copy of the installer was created on your desktop!
+    pause
+    exit
+)
 
 @REM #region RUN
 
@@ -97,6 +116,7 @@ GOTO :Error
 @REM if no args, go to userprofile
 if "%1"=="" ( 
 
+    CALL :PostUse    
     cd /d %userprofile%>nul 2>&1
     GOTO :ExitNoCLS
 
@@ -106,6 +126,7 @@ if "%1"=="" (
     @REM check if is a path
     if exist "%1" (
 
+        CALL :PostUse
         cd /d %1>nul 2>&1
         GOTO :ExitNoCLS
 
@@ -123,7 +144,15 @@ if "%1"=="" (
 
 GOTO :Args
 
-@REM #region INSTALL
+@REM #region POST USE
+
+:PostUse
+start /b "" cmd /c "<nul set /p=%cd%> "%dioxidePath%\last""
+@REM start /b "Dioxide Service" "%~f0" /service >nul 2>&1
+
+GOTO :EOF
+
+@REM #region INSTALL CHECK
 
 :CheckInstall
 if "%1" == "/fi" ( GOTO :Install )
@@ -139,7 +168,7 @@ if "%errorLevel%" == "0" (
 
     echo Dioxide installation process
     echo.
-    echo Dioxide is not installed in your system. Do you want to install it? [Y/N] CASE-SENSITIVE
+    echo Dioxide is not installed in your system.
     echo This will install Dioxide %version% in your system.
     echo.
     echo If you are not sure, check help using "%~nx0 --help"
@@ -157,6 +186,13 @@ if "%errorLevel%" == "0" (
 @REM cls
 echo Seems like Dioxide is already installed in your system.
 echo.
+
+if "%1" == "/reset" ( set reset=1 )
+if "%2" == "/reset" ( set reset=1 )
+if defined reset (
+    echo RESET FLAG DETECTED, BE CAREFUL.
+)
+
 for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Dioxide" /v "Version"') do set regVersion=%%a
 for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Dioxide" /v "Build"') do set regBuild=%%a
 
@@ -176,7 +212,7 @@ if "%regBuild%" == "%build%" (
     echo.
     choice /c YN /n /m "Press Y to reinstall, N to exit: "
     if errorlevel 2 (
-        GOTO :Exit
+        GOTO :ExitNoCLS
     ) else (
         GOTO :Install
     )
@@ -189,7 +225,7 @@ if "%regBuild%" == "%build%" (
     echo.
     choice /c YN /n /m "Press Y to install, N to exit: "
     if errorlevel 2 (
-        GOTO :Exit
+        GOTO :ExitNoCLS
     ) else (
         GOTO :Install
     )
@@ -202,7 +238,7 @@ if "%regBuild%" == "%build%" (
 
     choice /c YN /n /m "Press Y to install, N to exit: "
     if errorlevel 2 (
-        GOTO :Exit
+        GOTO :ExitNoCLS
     ) else (
         GOTO :Install
     )
@@ -212,8 +248,18 @@ if "%regBuild%" == "%build%" (
 set error=2
 GOTO :Error
 
+@REM #region INSTALL 
+
 :Install
 cls
+
+if "%1" == "/reset" ( set reset=1 )
+if "%2" == "/reset" ( set reset=1 )
+if defined reset (
+    echo Resetting Dioxide data...
+    rmdir /s /q "%dioxidePath%" >nul 2>&1
+)
+
 echo Installing Dioxide %version% ^(%build%^)...
 echo.
 echo Creating new files... [1/3]
@@ -253,41 +299,129 @@ echo.
 pause
 GOTO :ExitNoCLS
 
+@REM #region UNINSTALL
+
+:Uninstall
+
+echo Dioxide uninstall process
+echo.
+echo This will uninstall Dioxide %version% ^(%build%^) from your system.
+echo.
+echo If you are having problems, you can reinstall Dioxide using "%~nx0 /fi /reset"
+echo.
+choice /c YN /n /m "Press Y to uninstall, N to exit: "
+if errorlevel 2 (
+    GOTO :Exit
+) else (
+    cls
+)
+
+echo Uninstalling Dioxide %version% ^(%build%^)...
+echo.
+echo Removing files... [1/3]
+rmdir /s /q "%dioxidePath%" >nul 2>&1
+echo.
+
+echo Removing reg keys... [2/3]
+reg delete "HKLM\SOFTWARE\Dioxide" /v "Version" /f >nul
+reg delete "HKLM\SOFTWARE\Dioxide" /v "Build" /f >nul
+echo.
+
+echo Removing from path... [3/3]
+echo step 1/2...
+powershell -Command "& { if ([Environment]::GetEnvironmentVariable('Path', 'User').contains('Dioxide')) { [Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'User').Replace($env:LOCALAPPDATA + '\hppsrc\Dioxide\bin', ''), 'User'); exit 0 } else { exit 1} }"
+echo step 2/2...
+powershell -Command "& { if ([Environment]::GetEnvironmentVariable('Path', 'Machine').contains('Dioxide')) { [Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'Machine').Replace($env:LOCALAPPDATA + '\hppsrc\Dioxide\bin', ''), 'Machine'); exit 0 } else { exit 1} }"
+echo.
+
+echo =========================
+echo.
+echo Dioxide uninstalled successfully.
+echo.
+echo So sad to see you go :(
+echo We hope to see you again soon!
+echo.
+echo =========================
+
+echo.
+pause
+GOTO :ExitNoCLS
+
 @REM #region ARGS
 
 :Args
 if %arg%==1 (
+
     echo Dioxide %version% ^(%build%^) Help
     echo.
     echo Dioxide is a command line tool to change directories more easily.
     echo Check the github repo at https://github.com/hppsrc/dioxide
-    echo You open it using "%~nx0 --git"
+    echo You can open it using "%~nx0 --git"
     echo.
+    echo    /uninstall     : Uninstall Dioxide
     echo    /install       : Start install process
+    echo    /reset         : Reset Dioxide data (can be used after /install, /fi^)
     echo    /help          : Show this help
     echo    /git           : Open Dioxide github repo
     echo    /fi            : Force install without checks
+    echo.
+    echo    /b             : Open last directory in explorer
+    echo    /e             : Open new cmd in current directory
+    echo    /n             : Open new cmd
     echo.
     echo Usage:
     echo.
     echo    d ^<command^>     : Run Dioxide command
     echo    d ^<path^>        : Run Dioxide
-    echo    di              : Run Dioxide interactive mode
+    echo    di                : Run Dioxide interactive mode
     echo.
     echo Example:
     echo.
     echo    d --help
     echo    d C:\Some\Path
-    echo.
-    pause
+    echo    d /b
+    
 ) else if %arg%==2 (
     start https://github.com/hppsrc/dioxide
+) else if %arg%==3 (
+    if exist "%dioxidePath%\last" (
+        set /p lastPath=<"%dioxidePath%\last"
+        cd /d "%lastPath%"
+    ) else (
+        echo Dioxide Error: Last path not found.
+    )
+    GOTO :ExitNoCLS
+) else if %arg%==4 (
+    start . >nul 2>&1
+) else if %arg%==5 (
+    start cmd >nul 2>&1
+) else if %arg%==99 (
+
+    @REM Simple Dioxide explanation
+    @REM Using PowerShell, update ranking for paths
+    @REM This is a "service", so it will run in the background
+    @REM It will update the ranking on every execution
+
+    @REM read last path
+    @REM (create and ) update rank file +1 to last path
+    @REM create files for ranks 1 to 10
+
+    if "%~n0" NEQ "service" (
+        echo Dioxide background service
+
+        echo This is a service to update the ranking of paths.
+        echo It will run in the background and update the ranking on every execution.
+        echo.
+        echo It is not available to run directly.
+
+    )
+    
 ) else (
     set error=3
     GOTO :Error
-)
+) 
 
-GOTO :Exit
+GOTO :ExitNoCLS
 
 @REM #region ERROR
 
@@ -300,6 +434,8 @@ if "%error%" == "1" (
     echo Dioxide Error: Unknown command "%1".
 ) else if "%error%" == "4" (
     echo Dioxide Error: Path doesn't exist "%1".
+) else if "%error%" == "5" (
+    echo Dioxide Error: Admin check failed.
 ) else (
     echo Dioxide Error: Unknown error.
 )
