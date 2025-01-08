@@ -1,8 +1,8 @@
 # Dioxide 📁
 
-**Dioxide** is a program that seeks to recreate the [Zoxide](https://github.com/ajeetdsouza/zoxide) program but made entirely in Windows Batch.
+**Dioxide** is a program that seeks to recreate the [Zoxide](https://github.com/ajeetdsouza/zoxide) program but made entirely in Windows Batch and Powershell.
 
-Current version: **0.4.0-alpha**
+Current version: **0.5.0-alpha**
 
 > [!WARNING]
 > Dioxide is currently in ***ALPHA***, much of what is said here may not be implemented yet. ***Be careful!***
@@ -88,6 +88,12 @@ This project is licensed under the Apache 2.0 License.
   - [x] "d /n" open new terminal.
 
 ## Version History 🕒
+
+- 0.5.0-alpha
+  - Actions were created for before and after the use of Dioxide.
+  - Dioxide service was implemented and works as expected, one more feature is missing.
+  - A (temporary) warning was added to notify about the use of Dioxide.
+  - The PowerShell code for the service was added to the script.
 
 - 0.4.0-alpha
   - Added extra function commands, “reset” and “uninstall”.
