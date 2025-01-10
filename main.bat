@@ -4,12 +4,14 @@
 
 @REM enable dev mode
 if "%~n0" == "dev" ( echo on )
+if "%1" == "/dev" ( @echo on )
+if "%2" == "/dev" ( @echo on )
 
 @REM #region VARIABLES
 
 @REM variables
-set version=0.5.0-alpha
-set build=250107221
+set version=1.0.0
+set build=250110161
 set dioxidePath=%localappdata%\hppsrc\Dioxide
 set error=0
 set arg=0
@@ -32,13 +34,20 @@ if "%1" == "/git" ( set arg=2 )
 if "%1" == "/b" ( set arg=3 )
 if "%1" == "/e" ( set arg=4 )
 if "%1" == "/n" ( set arg=5 )
+if "%1" == "/disk" ( set arg=6 )
 
-if "%1" == "/service" ( set arg=99 )
-
-if "%1" == "/install" ( GOTO :AdminCheck )
 if "%1" == "/fi" ( GOTO :AdminCheck )
 if "%1" == "/reset" ( GOTO :AdminCheck )
+if "%1" == "/install" ( GOTO :AdminCheck )
 if "%1" == "/uninstall" ( GOTO :AdminCheck )
+if "%1" == "/na" (
+    if "%~dp0" == "%dioxidePath%\bin\" ( 
+        echo This command is disabled in the Dioxide installation.
+        GOTO :ExitNoCLS
+    ) else (
+        GOTO :Install
+    )
+)
 
 :RunCheck
 if "%arg%" == "0" (
@@ -88,7 +97,7 @@ echo Useful if you are having problems.
 echo.
 choice /c YN /n /m "Press Y to continue, N to exit: "
 if errorlevel 2 (
-    GOTO :Exit
+    @cls && echo on && title %cd% && cmd
 ) else (
     copy /y "%~s0" "%temp%\dioxide_temp_installer.bat" >nul 2>&1
     echo start "" "%temp%\dioxide_temp_installer.bat" /fi /reset > "%userprofile%\desktop\dioxide_%version%_installer.bat"
@@ -132,7 +141,18 @@ if "%1"=="" (
     )  else (
 
         @REM check ranking 
-        echo >nul 2>&1
+        if exist "%dioxidePath%\service\ranks\%1" (
+
+            for /f "delims=" %%i in ('type "%dioxidePath%\service\ranks\%1"') do (
+                cd /d "%%i" >nul 2>&1
+            )
+
+        ) else (
+
+            set error=4
+            GOTO :Error
+
+        )
 
     )
     
@@ -142,19 +162,22 @@ CALL :PostUse
 GOTO :ExitNoCLS
 
 :RunDi
-@REM echo To implement...
+echo To be implemented in future versions.
+pause
+GOTO :ExitNoCLS
 
 GOTO :Args
 
 @REM #region DIOXIDE ACTIONS
 
 :PreUse
-start /b "Dioxide Action" cmd /c "<nul set /p=%cd%> "%dioxidePath%\last""
+start /b "Dioxide Action" cmd /c "pathping 127.0.0.1 -n -q 1 -p 10 >nul && <nul set /p=%cd%> "%dioxidePath%\last""
 GOTO :EOF
 
 :PostUse
 start /b "Dioxide Action" cmd /c "<nul set /p=%cd%> "%dioxidePath%\current""
-start /min "Dioxide Service Runnner" "%dioxidePath%\bin\service.bat" /service >nul 2>&1
+start /min "Dioxide Service" powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File "%dioxidePath%\bin\service.ps1"
+
 GOTO :EOF
 
 @REM #region INSTALL CHECK
@@ -258,7 +281,6 @@ GOTO :Error
 :Install
 cls
 
-if "%1" == "/reset" ( set reset=1 )
 if "%2" == "/reset" ( set reset=1 )
 if defined reset (
     echo Resetting Dioxide data...
@@ -274,7 +296,7 @@ rmdir /s /q "%dioxidePath%\bin\" >nul 2>&1
 mkdir "%dioxidePath%\bin\" >nul 2>&1
 copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\d.bat" >nul 2>&1
 copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\di.bat" >nul 2>&1
-copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\service.bat" >nul 2>&1
+powershell -Command "& { (Get-Content '%dioxidePath%\bin\d.bat' -tail 63 ) | Out-File '%dioxidePath%\bin\service.ps1'}"
 del "%temp%\dioxide.bat" >nul 2>&1
 echo.
 
@@ -368,6 +390,7 @@ if %arg%==1 (
     echo    /install       : Start install process
     @REM echo    /service       : Start Dioxide service
     echo    /reset         : Reset Dioxide data (can be used after /install, /fi^)
+    echo    /disk          : Get disk usage by Dioxide
     echo    /help          : Show this help
     echo    /git           : Open Dioxide github repo
     echo    /fi            : Force install without checks
@@ -380,22 +403,23 @@ if %arg%==1 (
     echo.
     echo    d ^<command^>     : Run Dioxide command
     echo    d ^<path^>        : Run Dioxide
-    echo    di                : Run Dioxide interactive mode
+    @REM echo    di              : Run Dioxide interactive mode
     echo.
     echo Example:
     echo.
-    echo    d --help
+    echo    d /reset /install
+    echo    d /help
     echo    d C:\Some\Path
+    echo    d folder_name
     echo    d /b
     
 ) else if %arg%==2 (
     start https://github.com/hppsrc/dioxide
 ) else if %arg%==3 (
     if exist "%dioxidePath%\last" (
-        set /p lastPath=<"%dioxidePath%\last"
-        echo Opening last path: %lastPath%
-        pause
-        cd /d "%lastPath%"
+        for /f "delims=" %%i in ('type "%dioxidePath%\last"') do (
+                cd /d "%%i" >nul 2>&1
+            )
     ) else (
         echo Dioxide Error: Last path not found.
     )
@@ -404,39 +428,9 @@ if %arg%==1 (
     start . >nul 2>&1
 ) else if %arg%==5 (
     start cmd >nul 2>&1
-) else if %arg%==99 (
-    
-    @REM Check PS SERVICE REGION
-
-    if "%~n0" NEQ "service" (
-
-        echo. 
-        echo Dioxide background service
-        echo.
-        echo This is a service to update the ranking of paths.
-        echo It will run in the background and update the ranking on every execution.
-        echo.
-        echo It is not available to run directly.
-
-    ) else (
-
-        if not exist "%dioxidePath%\data0" (
-            echo DIOXIDE NOTICE >> %temp%\notice.txt
-            echo.  >> %temp%\notice.txt
-            echo When you run the script you may notice that an additional CMD window opens, >> %temp%\notice.txt
-            echo this is the one that starts the Dioxide ranking service and does nothing that >> %temp%\notice.txt
-            echo can affect your system. >> %temp%\notice.txt
-            echo.  >> %temp%\notice.txt
-            echo This will be fixed soon, thanks for understanding! >> %temp%\notice.txt
-            start "" %temp%\notice.txt
-            copy NUL %dioxidePath%\data0
-        )
-        
-        powershell -Command "& { (Get-Content '%dioxidePath%\bin\service.bat' -tail 42 ) | Out-File '%dioxidePath%\bin\service.ps1'}"
-        start /b "Dioxide Service PowerShell Run" powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File "%dioxidePath%\bin\service.ps1"
-
-    )
-    
+)  else if %arg%==6 (
+    echo Loading...
+    powershell -Command "& { $size = (Get-ChildItem '%dioxidePath%' -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB; Write-Host ('Dioxide is using {0:N2} MB of disk space.' -f $size) }"
 ) else (
     set error=3
     GOTO :Error
@@ -454,7 +448,7 @@ if "%error%" == "1" (
 ) else if "%error%" == "3" (
     echo Dioxide Error: Unknown command "%1".
 ) else if "%error%" == "4" (
-    echo Dioxide Error: Path doesn't exist "%1".
+    echo Dioxide Error: Couldn't find path "%1".
 ) else if "%error%" == "5" (
     echo Dioxide Error: Admin check failed.
 ) else (
@@ -473,7 +467,8 @@ GOTO :ExitNoCLS
 
 @GOTO :EOF && echo on && title %cd%
 
-@REM  #region PS SERVICE
+@REM #region PS SERVICE
+
 # variables
 $DIOXIDE_PATH = $ENV:LOCALAPPDATA + "\hppsrc\dioxide"; $SERVICE_PATH = $DIOXIDE_PATH + "\service"
 
@@ -514,5 +509,26 @@ if ($rankL.LineNumber) {
 
     # add current path to rank file, and c:\ to avoid missmatch on pattern
     Add-Content -Path (Join-Path $SERVICE_PATH "rank") -Value "1"; Add-Content -Path (Join-Path $SERVICE_PATH "rank") -Value ($current+";"+$creationTime) 
+
+} 
+
+# create rank files
+$rank = Get-Content -Path (Join-Path $SERVICE_PATH "rank") -Raw
+$rankL = $rank -split "`n"
+
+for ($i = 0; $i -lt $rankL.Count; $i++) {
+    # get values that are not ints
+    if ( -not [int]::TryParse($rankL[$i], [ref]$null)) {
+        # parse "path;date" to get path to the pase "C:\path" to get last string
+        $path =  $rankL[$i] -split ";"
+        $new =  $path[0] -split "\\"
+        # if last string is not "" create a file with that name and set content as path
+        if ( $new[-1] -ne "" ) { 
+            $rankPath = Join-Path $SERVICE_PATH "ranks"
+            New-Item -ItemType File -Path (Join-Path $rankPath $new[-1]) -Force | Out-Null
+            Set-Content -Path (Join-Path $rankPath $new[-1]) -Value ($path[0]) -Force -NoNewline
+        }
+
+    }
 
 }

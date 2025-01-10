@@ -2,10 +2,12 @@
 
 **Dioxide** is a program that seeks to recreate the [Zoxide](https://github.com/ajeetdsouza/zoxide) program but made entirely in Windows Batch and Powershell.
 
-Current version: **0.5.0-alpha**
+Current version: **1.0.0**
 
-> [!WARNING]
-> Dioxide is currently in ***ALPHA***, much of what is said here may not be implemented yet. ***Be careful!***
+> [!NOTE]
+> I consider that the project meets its objective 95%, for now I don't want to ***LOSE MY HEAD*** with something like Batch, so I'll leave it like that!
+>
+> Maybe in the future I will manage to fix the bugs and implement the interactive version.
 
 ## Getting Started 🎯
 
@@ -53,14 +55,7 @@ Dioxide checks the following order to move directory:
 
 3. ranking
 
-4. history log
-
 *If no match is found, an error is returned.*
-
-<!-- 
-- As in Zoxide, you have `di` an interactive version of Dioxide.
-
-TODO: Add this and screenshots -->
 
 ## Help ❓
 
@@ -76,18 +71,42 @@ This project is licensed under the Apache 2.0 License.
 
 ## TODO ✔️
 
-- [ ] Improve error handling.
-- [x] Main "d" implementation.
-- [ ] History and ranking.
 - [ ] Add interactive mode. (di)
-- [ ] Test compatibility with more Windows versions.
+- [ ] Fix Service Background Start.
+- [ ] Reduce disk usage.
+- [ ] Code cleanup.
 - [ ] Loggin system.
+- [ ] Test compatibility with more Windows versions.
+- [x] Main "d" implementation.
+- [x] History and ranking.
+- [x] Improve error handling.
 - [x] Extra actions.
   - [x] "d /b" return to last path.
   - [x] "d /e" open explorer.
   - [x] "d /n" open new terminal.
 
+## Known Errors 🐞
+
+- There is a bug where using double quotes gives an interpretation error, there is no way to fix this.
+
+example:
+
+      d "3D Objects"
+
+- When changing directory a minimized PowerShell window is created, this is the Dioxide service, it is completely harmless and necessary for the use of rankings.
+
 ## Version History 🕒
+
+- 1.0.0
+  - Mostly stable version considered 1.0.0.
+  - Added additional commands “dev”, “/na” and “/disk”.
+  - Fixed error when choosing N when running Admin command with Dioxide installed (simple implementation).
+  - Dioxide can now search for previous visited directories (Thanks to the service).
+  - Dioxide actions now work properly.
+  - Now the service is created at installation time and not at each run.
+  - The help message has been modified a little bit.
+  - The “/b” command to return to previous directory was fixed.
+  - The service execution was changed to something more direct; eliminating the “/service” command, also, now it fulfills all its function properly.
 
 - 0.5.0-alpha
   - Actions were created for before and after the use of Dioxide.
