@@ -1,17 +1,27 @@
 @echo off
 
-@REM Dioxide main script, created by Hppsrc. Get last version on https://github.com/hppsrc/dioxide
+@REM ? '^"'=='^"'
+
+@REM
+@REM	* Dioxide Source Code, created by Hppsrc.
+@REM	* Version 1.1.0
+@REM	* Build 2503041701
+@REM
+@REM 	* Dioxide is a Zoxidec clone made with in Windows Batch and Powershell.
+@REM
+@REM	* Source code on: https://github.com/hppsrc/dioxide
+@REM	* Under the Apache 2.0 License, you are free to use, modify, and distribute this code, subject to the license terms.
+@REM
 
 @REM enable dev mode
 if "%~n0" == "dev" ( echo on )
-if "%1" == "/dev" ( @echo on )
-if "%2" == "/dev" ( @echo on )
+for %%a in (%*) do ( if "%%a" == "/dev" ( @echo on ) )
 
 @REM #region VARIABLES
 
 @REM variables
-set version=1.0.0
-set build=250110161
+set version=1.1.0
+set build=2503041701
 set dioxidePath=%localappdata%\hppsrc\Dioxide
 set error=0
 set arg=0
@@ -29,20 +39,24 @@ if "%check:~0,1%"=="/" (
     set "arg=-1"
 )
 
-if "%1" == "/help" ( set arg=1 )
-if "%1" == "/git" ( set arg=2 )
-if "%1" == "/b" ( set arg=3 )
-if "%1" == "/e" ( set arg=4 )
-if "%1" == "/n" ( set arg=5 )
-if "%1" == "/disk" ( set arg=6 )
+for %%a in (%*) do ( if "%%a" == "/dev" ( set "arg=DEV" ) )
 
-if "%1" == "/fi" ( GOTO :AdminCheck )
-if "%1" == "/reset" ( GOTO :AdminCheck )
-if "%1" == "/install" ( GOTO :AdminCheck )
-if "%1" == "/uninstall" ( GOTO :AdminCheck )
+for %%a in (%*) do ( if "%%a" == "/help" ( set arg=1 ) )
+for %%a in (%*) do ( if "%%a" == "/git" ( set arg=2 ) )
+for %%a in (%*) do ( if "%%a" == "/b" ( set arg=3 ) )
+for %%a in (%*) do ( if "%%a" == "/e" ( set arg=4 ) )
+for %%a in (%*) do ( if "%%a" == "/n" ( set arg=5 ) )
+for %%a in (%*) do ( if "%%a" == "/disk" ( set arg=6 ) )
+for %%a in (%*) do ( if "%%a" == "/version" ( set arg=7 ) )
+
+for %%a in (%*) do ( if "%%a" == "/fi" ( GOTO :AdminCheck ) )
+for %%a in (%*) do ( if "%%a" == "/fi-s" ( GOTO :AdminCheck ) )
+for %%a in (%*) do ( if "%%a" == "/reset" ( GOTO :AdminCheck ) )
+for %%a in (%*) do ( if "%%a" == "/install" ( GOTO :AdminCheck ) )
+for %%a in (%*) do ( if "%%a" == "/uninstall" ( GOTO :AdminCheck ) )
 if "%1" == "/na" (
-    if "%~dp0" == "%dioxidePath%\bin\" ( 
-        echo This command is disabled in the Dioxide installation.
+    if "%~dp0" == "%dioxidePath%\bin\" (
+        echo Dioxide Error: This command is disabled in the Dioxide installation.
         GOTO :ExitNoCLS
     ) else (
         GOTO :Install
@@ -50,6 +64,13 @@ if "%1" == "/na" (
 )
 
 :RunCheck
+if "%arg%" == "DEV" (
+    if "%~dp0" == "%dioxidePath%\bin\" (
+		GOTO :Run
+	)
+	GOTO :AdminCheck
+)
+
 if "%arg%" == "0" (
     @REM check if have to run: "dioxide is installed in the path"
     if "%~dp0" == "%dioxidePath%\bin\" ( GOTO :Run )
@@ -60,14 +81,12 @@ if "%arg%" == "0" (
 @REM #region ADMIN CHECK
 
 :AdminCheck
-@REM cls
 @REM check admin
 net session >nul 2>&1
 if %errorLevel% == 0 (
 
     if "%~dp0" == "%dioxidePath%\bin\" ( CALL :AdminCheckRun )
-
-    if "%1" == "/uninstall" ( GOTO :Uninstall )
+	for %%a in (%*) do ( if "%%a" == "/uninstall" ( GOTO :Uninstall ) )
 
     GOTO :CheckInstall
 
@@ -92,15 +111,15 @@ if %errorLevel% == 0 (
 
 :AdminCheckRun
 echo You are trying to run an install command on the already installed Dioxide.
-echo That's not necessary, but it will reinstall Dioxide.
-echo Useful if you are having problems.
+echo If you are having problems you can re-install this version of Dioxide and restore Dioxide data.
+echo This may fix any problem with dioxide.
 echo.
 choice /c YN /n /m "Press Y to continue, N to exit: "
 if errorlevel 2 (
-    @cls && echo on && title %cd% && cmd
+    @cls && echo on && title %cd% && GOTO :EOF
 ) else (
     copy /y "%~s0" "%temp%\dioxide_temp_installer.bat" >nul 2>&1
-    echo start "" "%temp%\dioxide_temp_installer.bat" /fi /reset > "%userprofile%\desktop\dioxide_%version%_installer.bat"
+    echo start "" "%temp%\dioxide_temp_installer.bat" %%* > "%userprofile%\desktop\dioxide_%version%_installer.bat"
     echo.
     echo A copy of the installer was created on your desktop!
     pause
@@ -126,7 +145,7 @@ GOTO :Error
 
 CALL :PreUse
 
-if "%1"=="" ( 
+if "%1"=="" (
 
     cd /d %userprofile%>nul 2>&1
 
@@ -136,14 +155,14 @@ if "%1"=="" (
     @REM check if is a path
     if exist "%1" (
 
-        cd /d %1>nul 2>&1
+        cd /d %~1>nul 2>&1
 
     )  else (
 
-        @REM check ranking 
+        @REM check ranking
         if exist "%dioxidePath%\service\ranks\%1" (
 
-            for /f "delims=" %%i in ('type "%dioxidePath%\service\ranks\%1"') do (
+            for /f "delims=" %%i in ('type "%dioxidePath%\service\ranks\%~1"') do (
                 cd /d "%%i" >nul 2>&1
             )
 
@@ -155,7 +174,7 @@ if "%1"=="" (
         )
 
     )
-    
+
 )
 
 CALL :PostUse
@@ -165,7 +184,6 @@ GOTO :ExitNoCLS
 echo To be implemented in future versions.
 pause
 GOTO :ExitNoCLS
-
 GOTO :Args
 
 @REM #region DIOXIDE ACTIONS
@@ -176,14 +194,15 @@ GOTO :EOF
 
 :PostUse
 start /b "Dioxide Action" cmd /c "<nul set /p=%cd%> "%dioxidePath%\current""
-start /min "Dioxide Service" powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File "%dioxidePath%\bin\service.ps1"
-
+start /min "Dioxide Service" powershell -ExecutionPolicy Bypass -WindowStyle Hidden -NoExit -Command "& '%dioxidePath%\bin\service.ps1'"
 GOTO :EOF
 
 @REM #region INSTALL CHECK
 
 :CheckInstall
-if "%1" == "/fi" ( GOTO :Install )
+for %%a in (%*) do ( if "%%a" == "/fi" ( GOTO :Install ) )
+for %%a in (%*) do ( if "%%a" == "/fi-s" ( set skip=1 && GOTO :Install ) )
+
 @REM check if Dioxide is installed
 title Installing Dioxide %version% ^(%build%^)
 reg query "HKLM\SOFTWARE\Dioxide" >nul 2>&1
@@ -199,7 +218,7 @@ if "%errorLevel%" == "0" (
     echo Dioxide is not installed in your system.
     echo This will install Dioxide %version% in your system.
     echo.
-    echo If you are not sure, check help using "%~nx0 --help"
+    echo If you are not sure, check help using "%~nx0 /help"
     echo.
     choice /c YN /n /m "Press Y to install, N to exit: "
     if errorlevel 2 (
@@ -215,19 +234,25 @@ if "%errorLevel%" == "0" (
 echo Seems like Dioxide is already installed in your system.
 echo.
 
-if "%1" == "/reset" ( set reset=1 )
-if "%2" == "/reset" ( set reset=1 )
+for %%a in (%*) do ( if "%%a" == "/reset" ( set reset=1 ) )
 if defined reset (
-    echo RESET FLAG DETECTED, BE CAREFUL.
+    echo RESET FLAG DETECTED.
+    echo This will delete dioxide data.
+	echo.
 )
 
 for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Dioxide" /v "Version"') do set regVersion=%%a
 for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Dioxide" /v "Build"') do set regBuild=%%a
 
-if not exist "%dioxidePath%\bin\" (
+set notfound=0
+if not exist "%dioxidePath%\bin\" ( set notfound=1 )
+if not exist "%dioxidePath%\bin\d.bat" ( set notfound=1 )
+if not exist "%dioxidePath%\bin\service.ps1" ( set notfound=1 )
+
+if %notfound%==1  (
 
     echo WARNING: Dioxide files not found!
-    echo Dioxide keys are in your system, but the files are not found.
+    echo Dioxide keys are in your system, but the files or some files are not found.
     echo Please, continue the installation process to fix it.
     echo.
 
@@ -276,12 +301,12 @@ if "%regBuild%" == "%build%" (
 set error=2
 GOTO :Error
 
-@REM #region INSTALL 
+@REM #region INSTALL
 
 :Install
 cls
 
-if "%2" == "/reset" ( set reset=1 )
+for %%a in (%*) do ( if "%%a" == "/reset" ( set reset=1 ) )
 if defined reset (
     echo Resetting Dioxide data...
     rmdir /s /q "%dioxidePath%" >nul 2>&1
@@ -295,17 +320,17 @@ copy /y "%~s0" "%temp%\dioxide.bat" >nul 2>&1
 rmdir /s /q "%dioxidePath%\bin\" >nul 2>&1
 mkdir "%dioxidePath%\bin\" >nul 2>&1
 copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\d.bat" >nul 2>&1
-copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\di.bat" >nul 2>&1
+@REM copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\di.bat" >nul 2>&1
 powershell -Command "& { (Get-Content '%dioxidePath%\bin\d.bat' -tail 63 ) | Out-File '%dioxidePath%\bin\service.ps1'}"
 del "%temp%\dioxide.bat" >nul 2>&1
 echo.
 
 echo Creating reg keys... [2/3]
-reg add "HKLM\SOFTWARE\Dioxide" /v "Version" /t REG_SZ /d "%version%" /f >nul 
+reg add "HKLM\SOFTWARE\Dioxide" /v "Version" /t REG_SZ /d "%version%" /f >nul
 reg add "HKLM\SOFTWARE\Dioxide" /v "Build" /t REG_SZ /d "%build%" /f >nul
 echo.
 
-echo Adding to path... [3/3] 
+echo Adding to path... [3/3]
 echo step 1/2...
 powershell -Command "& { if (-not [Environment]::GetEnvironmentVariable('Path', 'User').contains('Dioxide')) { [Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + $env:LOCALAPPDATA + '\hppsrc\Dioxide\bin', 'User'); exit 0 } else { exit 1} }"
 echo step 2/2...
@@ -324,7 +349,12 @@ echo.
 echo =========================
 
 echo.
-pause
+
+if defined skip (
+    timeout /t 1
+) else (
+	pause
+)
 GOTO :ExitNoCLS
 
 @REM #region UNINSTALL
@@ -351,8 +381,7 @@ rmdir /s /q "%dioxidePath%" >nul 2>&1
 echo.
 
 echo Removing reg keys... [2/3]
-reg delete "HKLM\SOFTWARE\Dioxide" /v "Version" /f >nul
-reg delete "HKLM\SOFTWARE\Dioxide" /v "Build" /f >nul
+reg delete "HKLM\SOFTWARE\Dioxide" /f >nul
 echo.
 
 echo Removing from path... [3/3]
@@ -384,16 +413,17 @@ if %arg%==1 (
     echo.
     echo Dioxide is a command line tool to change directories more easily.
     echo Check the github repo at https://github.com/hppsrc/dioxide
-    echo You can open it using "%~nx0 --git"
+    echo You can open it using "%~nx0 /git"
     echo.
     echo    /uninstall     : Uninstall Dioxide
     echo    /install       : Start install process
     @REM echo    /service       : Start Dioxide service
-    echo    /reset         : Reset Dioxide data (can be used after /install, /fi^)
+    echo    /reset         : Reset Dioxide data
     echo    /disk          : Get disk usage by Dioxide
     echo    /help          : Show this help
     echo    /git           : Open Dioxide github repo
     echo    /fi            : Force install without checks
+    @REM echo    /na            : Force no admin install
     echo.
     echo    /b             : Open last directory in explorer
     echo    /e             : Open new cmd in current directory
@@ -412,7 +442,7 @@ if %arg%==1 (
     echo    d C:\Some\Path
     echo    d folder_name
     echo    d /b
-    
+
 ) else if %arg%==2 (
     start https://github.com/hppsrc/dioxide
 ) else if %arg%==3 (
@@ -430,11 +460,13 @@ if %arg%==1 (
     start cmd >nul 2>&1
 )  else if %arg%==6 (
     echo Loading...
-    powershell -Command "& { $size = (Get-ChildItem '%dioxidePath%' -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB; Write-Host ('Dioxide is using {0:N2} MB of disk space.' -f $size) }"
+    powershell -Command "& { if (Test-Path '%dioxidePath%') { $size = (Get-ChildItem '%dioxidePath%' -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB; Write-Host ('Dioxide is using {0:N2} MB of disk space.' -f $size) } else { Write-Host 'Dioxide Error: Dioxide is not installed.' } }"
+) else if %arg%==7 (
+    echo Dioxide version %version% ^(%build%^)
 ) else (
     set error=3
     GOTO :Error
-) 
+)
 
 GOTO :ExitNoCLS
 
@@ -459,7 +491,7 @@ GOTO :ExitNoCLS
 
 @REM #region EXIT
 
-:Exit 
+:Exit
 
 @GOTO :EOF && echo on && title %cd% && cls
 
@@ -502,15 +534,15 @@ if ($rankL.LineNumber) {
     Set-Content -Path (Join-Path $SERVICE_PATH "rank") -Value $rank
 
     # remove empty lines
-    (Get-Content -Path (Join-Path $SERVICE_PATH "rank")) | Where-Object { $_ -ne "" } | Set-Content -Path (Join-Path $SERVICE_PATH "rank"); 
+    (Get-Content -Path (Join-Path $SERVICE_PATH "rank")) | Where-Object { $_ -ne "" } | Set-Content -Path (Join-Path $SERVICE_PATH "rank");
 
 # else create new rank file
 } else {
 
     # add current path to rank file, and c:\ to avoid missmatch on pattern
-    Add-Content -Path (Join-Path $SERVICE_PATH "rank") -Value "1"; Add-Content -Path (Join-Path $SERVICE_PATH "rank") -Value ($current+";"+$creationTime) 
+    Add-Content -Path (Join-Path $SERVICE_PATH "rank") -Value "1"; Add-Content -Path (Join-Path $SERVICE_PATH "rank") -Value ($current+";"+$creationTime)
 
-} 
+}
 
 # create rank files
 $rank = Get-Content -Path (Join-Path $SERVICE_PATH "rank") -Raw
@@ -523,7 +555,7 @@ for ($i = 0; $i -lt $rankL.Count; $i++) {
         $path =  $rankL[$i] -split ";"
         $new =  $path[0] -split "\\"
         # if last string is not "" create a file with that name and set content as path
-        if ( $new[-1] -ne "" ) { 
+        if ( $new[-1] -ne "" ) {
             $rankPath = Join-Path $SERVICE_PATH "ranks"
             New-Item -ItemType File -Path (Join-Path $rankPath $new[-1]) -Force | Out-Null
             Set-Content -Path (Join-Path $rankPath $new[-1]) -Value ($path[0]) -Force -NoNewline
