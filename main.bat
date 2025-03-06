@@ -1,13 +1,11 @@
 @echo off
 
-@REM ? '^"'=='^"'
-
 @REM
 @REM	* Dioxide Source Code, created by Hppsrc.
-@REM	* Version 1.1.0
-@REM	* Build 2503041701
+@REM	* Version 2.0.0
+@REM	* Build 2503052201
 @REM
-@REM 	* Dioxide is a Zoxidec clone made with in Windows Batch and Powershell.
+@REM 	* Dioxide is a Zoxide clone made with in Windows Batch and Powershell.
 @REM
 @REM	* Source code on: https://github.com/hppsrc/dioxide
 @REM	* Under the Apache 2.0 License, you are free to use, modify, and distribute this code, subject to the license terms.
@@ -20,8 +18,8 @@ for %%a in (%*) do ( if "%%a" == "/dev" ( @echo on ) )
 @REM #region VARIABLES
 
 @REM variables
-set version=1.1.0
-set build=2503041701
+set version=2.0.0
+set build=2503052201
 set dioxidePath=%localappdata%\hppsrc\Dioxide
 set error=0
 set arg=0
@@ -48,6 +46,8 @@ for %%a in (%*) do ( if "%%a" == "/e" ( set arg=4 ) )
 for %%a in (%*) do ( if "%%a" == "/n" ( set arg=5 ) )
 for %%a in (%*) do ( if "%%a" == "/disk" ( set arg=6 ) )
 for %%a in (%*) do ( if "%%a" == "/version" ( set arg=7 ) )
+for %%a in (%*) do ( if "%%a" == "/service" ( set arg=8 ) )
+for %%a in (%*) do ( if "%%a" == "/direct" ( GOTO :RunD ) )
 
 for %%a in (%*) do ( if "%%a" == "/fi" ( GOTO :AdminCheck ) )
 for %%a in (%*) do ( if "%%a" == "/fi-s" ( GOTO :AdminCheck ) )
@@ -155,14 +155,14 @@ if "%1"=="" (
     @REM check if is a path
     if exist "%1" (
 
-        cd /d %~1>nul 2>&1
+        cd /d %1>nul 2>&1
 
     )  else (
 
         @REM check ranking
         if exist "%dioxidePath%\service\ranks\%1" (
 
-            for /f "delims=" %%i in ('type "%dioxidePath%\service\ranks\%~1"') do (
+            for /f "delims=" %%i in ('type "%dioxidePath%\service\ranks\%1"') do (
                 cd /d "%%i" >nul 2>&1
             )
 
@@ -181,10 +181,18 @@ CALL :PostUse
 GOTO :ExitNoCLS
 
 :RunDi
-echo To be implemented in future versions.
-pause
+cls
+echo Dioxide interactive mode
+echo ========================
+echo Select an option of the list below:
+echo.
+powershell -Command "& { $rankFile = Get-Content (Join-Path $env:LOCALAPPDATA 'hppsrc\Dioxide\service\rank'); $rankLines = $rankFile | Where-Object { $_ -ne '' }; $rankings = @{}; for ($i = 0; $i -lt $rankLines.Count; $i += 2) { $rank = $rankLines[$i]; $path = ($rankLines[$i + 1] -split ';')[0]; $rankings[$path] = [int]$rank }; $files = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'hppsrc\Dioxide\service\ranks') | Sort-Object LastWriteTime -Descending; $index = 1; $files | ForEach-Object { $path = Get-Content $_.FullName; $rank = if ($rankings.ContainsKey($path)) { $rankings[$path] } else { 1 }; Write-Host ('{0}.{1} (Usage: {3}) - Path: \"{2}\" ' -f $index, $_.Name, $path, $rank); $index++ }; Write-Host ''; $choice = Read-Host 'Select number'; if ($choice -match '^\d+$') { $selection = [int]$choice - 1; if ($selection -ge 0 -and $selection -lt $files.Count) { $selectedPath = Get-Content $files[$selection].FullName; Set-Content -Path (Join-Path $env:LOCALAPPDATA 'hppsrc\Dioxide\current') -Value $selectedPath -NoNewline } } }"
+
+for /f "delims=" %%i in ('type "%dioxidePath%\current"') do (
+    cd /d "%%i" >nul 2>&1
+)
+cls
 GOTO :ExitNoCLS
-GOTO :Args
 
 @REM #region DIOXIDE ACTIONS
 
@@ -194,7 +202,9 @@ GOTO :EOF
 
 :PostUse
 start /b "Dioxide Action" cmd /c "<nul set /p=%cd%> "%dioxidePath%\current""
-start /min "Dioxide Service" powershell -ExecutionPolicy Bypass -WindowStyle Hidden -NoExit -Command "& '%dioxidePath%\bin\service.ps1'"
+if not exist "%dioxidePath%\.service" (
+	start /min "Dioxide Service" powershell -ExecutionPolicy Bypass -WindowStyle Hidden -NoExit -Command "& '%dioxidePath%\bin\service.ps1'"
+)
 GOTO :EOF
 
 @REM #region INSTALL CHECK
@@ -320,7 +330,7 @@ copy /y "%~s0" "%temp%\dioxide.bat" >nul 2>&1
 rmdir /s /q "%dioxidePath%\bin\" >nul 2>&1
 mkdir "%dioxidePath%\bin\" >nul 2>&1
 copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\d.bat" >nul 2>&1
-@REM copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\di.bat" >nul 2>&1
+copy /y "%temp%\dioxide.bat" "%dioxidePath%\bin\di.bat" >nul 2>&1
 powershell -Command "& { (Get-Content '%dioxidePath%\bin\d.bat' -tail 63 ) | Out-File '%dioxidePath%\bin\service.ps1'}"
 del "%temp%\dioxide.bat" >nul 2>&1
 echo.
@@ -417,7 +427,7 @@ if %arg%==1 (
     echo.
     echo    /uninstall     : Uninstall Dioxide
     echo    /install       : Start install process
-    @REM echo    /service       : Start Dioxide service
+    echo    /service       : Toggle Dioxide service
     echo    /reset         : Reset Dioxide data
     echo    /disk          : Get disk usage by Dioxide
     echo    /help          : Show this help
@@ -448,8 +458,8 @@ if %arg%==1 (
 ) else if %arg%==3 (
     if exist "%dioxidePath%\last" (
         for /f "delims=" %%i in ('type "%dioxidePath%\last"') do (
-                cd /d "%%i" >nul 2>&1
-            )
+			cd /d "%%i" >nul 2>&1
+		)
     ) else (
         echo Dioxide Error: Last path not found.
     )
@@ -463,6 +473,14 @@ if %arg%==1 (
     powershell -Command "& { if (Test-Path '%dioxidePath%') { $size = (Get-ChildItem '%dioxidePath%' -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB; Write-Host ('Dioxide is using {0:N2} MB of disk space.' -f $size) } else { Write-Host 'Dioxide Error: Dioxide is not installed.' } }"
 ) else if %arg%==7 (
     echo Dioxide version %version% ^(%build%^)
+) else if %arg%==8 (
+	if exist "%dioxidePath%\.service" (
+		echo Dioxide Service was enabled
+		del /f "%dioxidePath%\.service"
+	) else (
+		echo Dioxide Service was disabled
+		echo > "%dioxidePath%\.service"
+	)
 ) else (
     set error=3
     GOTO :Error

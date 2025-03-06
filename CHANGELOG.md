@@ -2,6 +2,17 @@
 
 Based not exaustively on [Keep a Changelog][KaC-link] and [SemVer][Smv-link].
 
+## 2.0.0
+
+### Added
+
+- Added interactive mode.
+- New "/service" and "/direct" switches.
+
+### Changed
+
+- The "di.bat" file creation has been re-enabled.
+
 ## 1.1.0
 
 ### Added
@@ -9,7 +20,7 @@ Based not exaustively on [Keep a Changelog][KaC-link] and [SemVer][Smv-link].
 - Code cleaning.
 - Changelog file.
 - Added file checks.
-- New "/version"  and "/fi-s"  switches.
+- New "/version" and "/fi-s" switches.
 
 ### Changed
 

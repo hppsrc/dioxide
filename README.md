@@ -2,7 +2,10 @@
 
 **Dioxide** is a program that seeks to recreate the [Zoxide](https://github.com/ajeetdsouza/zoxide) program but made entirely in Windows Batch and Powershell.
 
-Current version: **1.1.0**
+Current version: **2.0.0**
+
+> [!NOTE]
+> This project is currently inactive and will stop receiving updates in general for a long time. Batch is a very annoying thing to work on and I don't want to waste any more time with this.
 
 ## Getting Started 🎯
 
@@ -72,12 +75,12 @@ This project is licensed under the Apache 2.0 License.
 
 ## TODO ✔️
 
-- [ ] Add interactive mode. (di)
 - [ ] Fix Service Background Start.
-- [ ] Reduce disk usage.
-- [ ] Code cleanup.
 - [ ] Loggin system.
 - [ ] Test compatibility with more Windows versions.
+- [x] Add interactive mode. (di)
+- [x] Reduce disk usage.
+- [x] Code cleanup.
 - [x] Main "d" implementation.
 - [x] History and ranking.
 - [x] Improve error handling.
